@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.2.7</version>
+		<version>3.2.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
@@ -24,12 +24,12 @@
 		<dependency>
 			<groupId>org.mybatis.spring.boot</groupId>
 			<artifactId>mybatis-spring-boot-starter</artifactId>
-			<version>3.0.3</version>
+			<version>3.0.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.mysql</groupId>
-			<artifactId>mysql-connetcor-j</artifactId>
+			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
@@ -67,6 +67,19 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<!-- MyBatis 自动生成代码的插件 -->
+			<plugin>
+				<groupId>cn.caohongliang</groupId>
+				<artifactId>mybatis-generator-maven-plugin</artifactId>
+				<version>1.1.0</version>
+				<configuration>
+					<!-- 配置文件的路径 -->
+					<configurationFile>generatorConfig.xml</configurationFile>
+					<verbose>true</verbose>
+					<overwrite>true</overwrite>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 	<repositories>
