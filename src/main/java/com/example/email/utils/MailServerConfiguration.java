@@ -1,6 +1,6 @@
-package com.example.email.protocol;
+package com.example.email.utils;
 
-import com.sun.tools.javac.util.StringUtils;
+//import com.sun.tools.javac.util.StringUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public abstract class MailServerConfiguration {
@@ -19,7 +19,8 @@ public abstract class MailServerConfiguration {
         this.password = password;
     }
     public void valid_or_not(){
-        if(StringUtils.isBlank())
+        if(StringUtils.isBlank(getHost())||getPort()==0||StringUtils.isBlank((getUsername()))||StringUtils.isBlank(getPassword()))
+            throw new RuntimeException("请把信息填写完整");
     }
 
     public Integer getPort() {
