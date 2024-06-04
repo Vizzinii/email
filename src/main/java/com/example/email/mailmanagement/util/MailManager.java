@@ -69,51 +69,36 @@ public class MailManager {
         pop3Props.put("mail.pop3.starttls.enable", "false");
     }
 
-    public void sendEmail(MailBean mail) {
-        Session session = Session.getInstance(smtpProps, new Authenticator() {
-            protected PasswordAuthentication getPasswordAuthentication() {
-                return new PasswordAuthentication(smtpUsername, smtpPassword);
-            }
-        });
+    public void sendEmail(MailBean mailBean) {
+        MailEntity mail = new MailEntity();
 
-        try {
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(mail.getFrom()));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(mail.getTo()));
-            message.setSubject(mail.getSubject());
-            message.setText(mail.getBody());
+        Optional<UserEntity> fromUserOpt = userRepository.findByEmail(mailBean.getFrom());
+        Optional<UserEntity> toUserOpt = userRepository.findByEmail(mailBean.getTo());
 
-            Transport.send(message);
-            System.out.println("Email sent successfully");
-
-            // 获取发件人的 userId
-            Optional<UserEntity> senderUser = userRepository.findByEmail(mail.getFrom());
-            if (senderUser.isEmpty()) {
-                throw new RuntimeException("senderUser not found for email: " + mail.getFrom());
-            }
-
-            // 获取收件人的 userId
-            Optional<UserEntity> receiveUser = userRepository.findByEmail(mail.getTo());
-            if (receiveUser.isEmpty()) {
-                throw new RuntimeException("receiveUser not found for email: " + mail.getTo());
-            }
-
-            // 保存邮件到数据库
-            MailEntity mailEntity = new MailEntity();
-            mailEntity.setFromEmail(mail.getFrom());
-            mailEntity.setToEmail(mail.getTo());
-            mailEntity.setSubject(mail.getSubject());
-            mailEntity.setBody(mail.getBody());
-            mailEntity.setSentDate(mail.getSentDate());
-            mailEntity.setIsRead(false);
-            mailEntity.setFromId(senderUser.get().getUserId()); // 设置 fromId
-            mailEntity.setToId(receiveUser.get().getUserId());
-            mailRepository.save(mailEntity);
-
-        } catch (MessagingException e) {
-            throw new RuntimeException(e);
+        if (fromUserOpt.isPresent()) {
+            UserEntity fromUser = fromUserOpt.get();
+            mail.setFromUser(fromUser);
+            mail.setFromEmail(mailBean.getFrom());
+        } else {
+            throw new RuntimeException("Sender not found");
         }
+
+        if (toUserOpt.isPresent()) {
+            UserEntity toUser = toUserOpt.get();
+            mail.setToUser(toUser);
+            mail.setToEmail(mailBean.getTo());
+        } else {
+            throw new RuntimeException("Recipient not found");
+        }
+
+        mail.setSubject(mailBean.getSubject());
+        mail.setBody(mailBean.getBody());
+        mail.setSentDate(mailBean.getSentDate());
+        mail.setRead(false); // Assuming the email is unread when sent
+
+        mailRepository.save(mail);
     }
+
 
     public List<MailBean> receiveEmails(String username, String password) {
         List<MailBean> emails = new ArrayList<>();
@@ -157,3 +142,5 @@ public class MailManager {
         return emails;
     }
 }
+
+

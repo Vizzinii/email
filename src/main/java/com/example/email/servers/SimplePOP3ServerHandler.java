@@ -2,6 +2,7 @@ package com.example.email.servers;
 
 import com.example.email.entity.MailEntity;
 import com.example.email.repository.MailRepository;
+import com.example.email.repository.UserRepository;
 
 import java.io.*;
 import java.net.Socket;
@@ -10,10 +11,12 @@ import java.util.List;
 public class SimplePOP3ServerHandler extends Thread {
     private Socket socket;
     private MailRepository mailRepository;
+    private UserRepository userRepository;
 
-    public SimplePOP3ServerHandler(Socket socket, MailRepository mailRepository) {
+    public SimplePOP3ServerHandler(Socket socket, MailRepository mailRepository, UserRepository userRepository) {
         this.socket = socket;
         this.mailRepository = mailRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -47,6 +50,10 @@ public class SimplePOP3ServerHandler extends Thread {
                     if (index >= 0 && index < messages.size()) {
                         MailEntity mail = messages.get(index);
                         writer.println("+OK " + mail.getBody().length() + " octets");
+                        writer.println("From: " + mail.getFromEmail());
+                        writer.println("To: " + mail.getToEmail());
+                        writer.println("Subject: " + mail.getSubject());
+                        writer.println();
                         writer.println(mail.getBody());
                         writer.println(".");
                     } else {

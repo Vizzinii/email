@@ -1,7 +1,9 @@
 package com.example.email.service;
 
 import com.example.email.entity.UserEntity;
+import com.example.email.entity.FolderEntity;
 import com.example.email.repository.UserRepository;
+import com.example.email.repository.FolderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,24 +24,35 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    @Autowired
+    private FolderRepository folderRepository;
+
     public UserEntity registerUser(String username, String email, String password) {
-        if (userRepository.findByUsername(username) != null || userRepository.findByEmail(email).isPresent()) {
-            throw new RuntimeException("Username or email already exists.");
-        }
+        UserEntity user = new UserEntity();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(hashPassword(password));
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+        user = userRepository.save(user);
 
-        String hashedPassword = hashPassword(password);
-        UserEntity newUser = new UserEntity();
-        newUser.setUsername(username);
-        newUser.setEmail(email);
-        newUser.setPassword(hashedPassword);
-        newUser.setCreatedAt(LocalDateTime.now());
-        newUser.setUpdatedAt(LocalDateTime.now());
+        // 为新注册用户创建收件箱
+        FolderEntity inboxFolder = new FolderEntity();
+        inboxFolder.setUser(user);
+        inboxFolder.setName("收件箱");
+        folderRepository.save(inboxFolder);
 
-        return userRepository.save(newUser);
+        return user;
+    }
+
+
+    public UserEntity getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     public Optional<UserEntity> findUserByUsername(String username) {
-        return Optional.ofNullable(userRepository.findByUsername(username));
+        return userRepository.findByUsername(username);
     }
 
     public void deleteUser(Long userId) {
@@ -70,9 +83,12 @@ public class UserService {
         return storedHash.equals(hashPassword(rawPassword));
     }
     public UserEntity authenticateUser(String username, String password) {
-        Optional<UserEntity> user = findUserByUsername(username);
-        if (user.isPresent() && validatePassword(password, user.get().getPassword())) {
-            return user.get();
+        Optional<UserEntity> userOpt = findUserByUsername(username);
+        if (userOpt.isPresent()) {
+            UserEntity user = userOpt.get();
+            if (validatePassword(password, user.getPassword())) {
+                return user;
+            }
         }
         return null;
     }

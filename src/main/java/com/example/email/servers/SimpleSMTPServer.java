@@ -1,6 +1,7 @@
 package com.example.email.servers;
 
 import com.example.email.repository.MailRepository;
+import com.example.email.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,15 +16,38 @@ public class SimpleSMTPServer {
     @Autowired
     private MailRepository mailRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    private ServerSocket serverSocket;
+    private boolean running = true;
+
     public void start() {
-        try (ServerSocket serverSocket = new ServerSocket(SMTP_PORT)) {
+        try {
+            serverSocket = new ServerSocket(SMTP_PORT);
             System.out.println("SMTP Server is listening on port " + SMTP_PORT);
-            while (true) {
+            while (running) {
                 Socket socket = serverSocket.accept();
-                new SimpleSMTPServerHandler(socket, mailRepository).start();
+                new SimpleSMTPServerHandler(socket, mailRepository, userRepository).start();
             }
         } catch (IOException ex) {
-            ex.printStackTrace();
+            if (running) {
+                ex.printStackTrace();
+            }
+        } finally {
+            stop();
         }
+    }
+
+    public void stop() {
+        running = false;
+        if (serverSocket != null && !serverSocket.isClosed()) {
+            try {
+                serverSocket.close();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        System.out.println("SMTP Server stopped.");
     }
 }

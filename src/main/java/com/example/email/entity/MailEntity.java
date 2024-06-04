@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
+
+
 @Entity
 @Table(name = "emails")
 public class MailEntity {
@@ -12,32 +14,35 @@ public class MailEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long emailId;
 
-    @Column(nullable = false)
-    private Long fromId;
+    @ManyToOne
+    @JoinColumn(name = "from_id", nullable = false)
+    private UserEntity fromUser;
 
-    @Column(nullable = false)
-    private Long toId;
+    @ManyToOne
+    @JoinColumn(name = "to_id", nullable = false)
+    private UserEntity toUser;
+
+    @Column(nullable = false, name = "from_email")
+    private String fromEmail;
+
+    @Column(nullable = false, name = "to_email")
+    private String toEmail;
 
     private String subject;
 
-    @Column(columnDefinition = "TEXT")
     private String body;
 
-    @Column(nullable = false)
-    private String fromEmail;
-
-    @Column(nullable = false)
-    private String toEmail; // 添加收件人字段
-
+    @Column(name = "sent_date")
     private LocalDateTime sentDate;
 
-    @Column(nullable = false)
-    private Boolean isRead;
+    @Column(name = "is_read")
+    private boolean isRead;
 
-    private Long folderId;
+    @ManyToOne
+    @JoinColumn(name = "folder_id")
+    private FolderEntity folder;
 
     // Getters and Setters
-
     public Long getEmailId() {
         return emailId;
     }
@@ -46,36 +51,20 @@ public class MailEntity {
         this.emailId = emailId;
     }
 
-    public Long getFromId() {
-        return fromId;
+    public UserEntity getFromUser() {
+        return fromUser;
     }
 
-    public void setFromId(Long fromId) {
-        this.fromId = fromId;
+    public void setFromUser(UserEntity fromUser) {
+        this.fromUser = fromUser;
     }
 
-    public Long getToId() {
-        return toId;
+    public UserEntity getToUser() {
+        return toUser;
     }
 
-    public void setToId(Long toId) {
-        this.toId = toId;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
+    public void setToUser(UserEntity toUser) {
+        this.toUser = toUser;
     }
 
     public String getFromEmail() {
@@ -94,6 +83,22 @@ public class MailEntity {
         this.toEmail = toEmail;
     }
 
+    public String getSubject() {
+        return subject;
+    }
+
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    public String getBody() {
+        return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
+    }
+
     public LocalDateTime getSentDate() {
         return sentDate;
     }
@@ -102,19 +107,19 @@ public class MailEntity {
         this.sentDate = sentDate;
     }
 
-    public Boolean getIsRead() {
+    public boolean isRead() {
         return isRead;
     }
 
-    public void setIsRead(Boolean isRead) {
+    public void setRead(boolean isRead) {
         this.isRead = isRead;
     }
 
-    public Long getFolderId() {
-        return folderId;
+    public FolderEntity getFolder() {
+        return folder;
     }
 
-    public void setFolderId(Long folderId) {
-        this.folderId = folderId;
+    public void setFolder(FolderEntity folder) {
+        this.folder = folder;
     }
 }
