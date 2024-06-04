@@ -3,10 +3,16 @@ package com.example.email.controller;
 import com.example.email.entity.UserEntity;
 import com.example.email.service.UserService;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     private final UserService userService;
 
@@ -16,26 +22,32 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public UserEntity registerUser(@RequestParam String username,
-                                   @RequestParam String email,
-                                   @RequestParam String password) {
-        return userService.registerUser(username, email, password);
+    public ResponseEntity<UserEntity> registerUser(@RequestBody UserEntity user) {
+        UserEntity registeredUser = userService.registerUser(user.getUsername(), user.getEmail(), user.getPassword());
+        return new ResponseEntity<>(registeredUser, HttpStatus.CREATED);
     }
 
     @PostMapping("/login")
-    public String loginUser(@RequestParam String username, @RequestParam String password) {
-        UserEntity user = userService.findUserByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found."));
-
-        if (!userService.validatePassword(password, user.getPassword())) {
-            throw new RuntimeException("Invalid password.");
+    public ResponseEntity<?> loginUser(@RequestBody UserEntity loginRequest) {
+        logger.info("Login attempt with email: {}", loginRequest.getEmail());
+        UserEntity user = userService.authenticateUser(loginRequest.getEmail(), loginRequest.getPassword());
+        if (user != null) {
+            logger.info("Login successful for email: {}", loginRequest.getEmail());
+            return ResponseEntity.ok(user);
+        } else {
+            logger.warn("Login failed for email: {}", loginRequest.getEmail());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid email or password.");
         }
-
-        return "Login successful";
     }
 
     @DeleteMapping("/delete")
-    public void deleteUser(@RequestParam Long userId) {
+    public ResponseEntity<Void> deleteUser(@RequestParam Long userId) {
         userService.deleteUser(userId);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> testEndpoint() {
+        return ResponseEntity.ok("API is working");
     }
 }

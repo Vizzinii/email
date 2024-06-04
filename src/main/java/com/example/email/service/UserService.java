@@ -55,6 +55,10 @@ public class UserService {
         return userRepository.findByUsername(username);
     }
 
+    public Optional<UserEntity> findUserByEmail(String Email) {
+        return userRepository.findByEmail(Email);
+    }
+
     public void deleteUser(Long userId) {
         Optional<UserEntity> user = userRepository.findById(userId);
         if (user.isEmpty()) {
@@ -63,7 +67,7 @@ public class UserService {
         userRepository.deleteById(userId);
     }
 
-    String hashPassword(String password) {
+    public String hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] encodedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
@@ -82,8 +86,8 @@ public class UserService {
     public boolean validatePassword(String rawPassword, String storedHash) {
         return storedHash.equals(hashPassword(rawPassword));
     }
-    public UserEntity authenticateUser(String username, String password) {
-        Optional<UserEntity> userOpt = findUserByUsername(username);
+    public UserEntity authenticateUser(String Email, String password) {
+        Optional<UserEntity> userOpt = findUserByEmail(Email);
         if (userOpt.isPresent()) {
             UserEntity user = userOpt.get();
             if (validatePassword(password, user.getPassword())) {

@@ -44,6 +44,10 @@ public class MailService {
     }
 
 
+    public void saveMail(MailEntity mailEntity) {
+        mailRepository.save(mailEntity);
+    }
+
     public void sendEmail(UserEntity fromUser, UserEntity toUser, String subject, String body) {
         MailEntity mail = new MailEntity();
         mail.setFromUser(fromUser);

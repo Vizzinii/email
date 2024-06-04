@@ -75,15 +75,15 @@ public class ConsoleController implements CommandLineRunner {
     }
 
     private void login() {
-        System.out.print("Enter username: ");
-        String username = scanner.nextLine();
+        System.out.print("Enter Email: ");
+        String email = scanner.nextLine();
         System.out.print("Enter password: ");
         String password = scanner.nextLine();
-        UserEntity user = userService.authenticateUser(username, password);
+        UserEntity user = userService.authenticateUser(email, password);
         if (user != null) {
             System.out.println("Login successful.");
         } else {
-            System.out.println("Invalid username or password.");
+            System.out.println("Invalid email or password.");
         }
     }
 

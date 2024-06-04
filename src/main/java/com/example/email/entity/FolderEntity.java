@@ -2,7 +2,8 @@ package com.example.email.entity;
 
 import jakarta.persistence.*;
 import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "folders")
@@ -17,9 +18,11 @@ public class FolderEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference(value = "user-folders")
     private UserEntity user;
 
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "folder-emails")
     private List<MailEntity> emails;
 
     // Getters and Setters

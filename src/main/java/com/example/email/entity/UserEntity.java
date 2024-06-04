@@ -1,8 +1,8 @@
 package com.example.email.entity;
 
 import jakarta.persistence.*;
-
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import net.minidev.json.annotate.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +20,7 @@ public class UserEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -30,12 +31,15 @@ public class UserEntity {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "fromUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "from-user-emails")
     private List<MailEntity> sentEmails;
 
     @OneToMany(mappedBy = "toUser", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "to-user-emails")
     private List<MailEntity> receivedEmails;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "user-folders")
     private List<FolderEntity> folders;
 
     @PrePersist

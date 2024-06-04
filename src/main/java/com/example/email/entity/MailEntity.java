@@ -1,10 +1,8 @@
 package com.example.email.entity;
 
 import jakarta.persistence.*;
-
 import java.time.LocalDateTime;
-
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "emails")
@@ -16,10 +14,12 @@ public class MailEntity {
 
     @ManyToOne
     @JoinColumn(name = "from_id", nullable = false)
+    @JsonBackReference(value = "from-user-emails")
     private UserEntity fromUser;
 
     @ManyToOne
     @JoinColumn(name = "to_id", nullable = false)
+    @JsonBackReference(value = "to-user-emails")
     private UserEntity toUser;
 
     @Column(nullable = false, name = "from_email")
@@ -40,6 +40,7 @@ public class MailEntity {
 
     @ManyToOne
     @JoinColumn(name = "folder_id")
+    @JsonBackReference(value = "folder-emails")
     private FolderEntity folder;
 
     // Getters and Setters
