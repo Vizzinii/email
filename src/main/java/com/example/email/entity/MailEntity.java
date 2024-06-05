@@ -36,7 +36,7 @@ public class MailEntity {
     private LocalDateTime sentDate;
 
     @Column(name = "is_read")
-    private boolean isRead;
+    private boolean Read;
 
     @ManyToOne
     @JoinColumn(name = "folder_id")
@@ -84,6 +84,11 @@ public class MailEntity {
         this.toEmail = toEmail;
     }
 
+    public Long getToId() {
+        return toUser.getUserId();
+    }
+
+
     public String getSubject() {
         return subject;
     }
@@ -109,11 +114,11 @@ public class MailEntity {
     }
 
     public boolean isRead() {
-        return isRead;
+        return Read;
     }
 
     public void setRead(boolean isRead) {
-        this.isRead = isRead;
+        this.Read = isRead;
     }
 
     public FolderEntity getFolder() {

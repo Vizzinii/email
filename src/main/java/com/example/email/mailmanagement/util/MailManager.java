@@ -70,33 +70,23 @@ public class MailManager {
     }
 
     public void sendEmail(MailBean mailBean) {
-        MailEntity mail = new MailEntity();
+        try {
+            Session session = Session.getInstance(smtpProps, new jakarta.mail.Authenticator() {
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(smtpUsername, smtpPassword);
+                }
+            });
 
-        Optional<UserEntity> fromUserOpt = userRepository.findByEmail(mailBean.getFrom());
-        Optional<UserEntity> toUserOpt = userRepository.findByEmail(mailBean.getTo());
+            Message message = new MimeMessage(session);
+            message.setFrom(new InternetAddress(mailBean.getFrom()));
+            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(mailBean.getTo()));
+            message.setSubject(mailBean.getSubject());
+            message.setText(mailBean.getBody());
 
-        if (fromUserOpt.isPresent()) {
-            UserEntity fromUser = fromUserOpt.get();
-            mail.setFromUser(fromUser);
-            mail.setFromEmail(mailBean.getFrom());
-        } else {
-            throw new RuntimeException("Sender not found");
+            Transport.send(message);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Error sending email", e);
         }
-
-        if (toUserOpt.isPresent()) {
-            UserEntity toUser = toUserOpt.get();
-            mail.setToUser(toUser);
-            mail.setToEmail(mailBean.getTo());
-        } else {
-            throw new RuntimeException("Recipient not found");
-        }
-
-        mail.setSubject(mailBean.getSubject());
-        mail.setBody(mailBean.getBody());
-        mail.setSentDate(mailBean.getSentDate());
-        mail.setRead(false); // Assuming the email is unread when sent
-
-        mailRepository.save(mail);
     }
 
 
@@ -111,7 +101,7 @@ public class MailManager {
             store.connect(pop3Host, username, password);
 
             emailFolder = store.getFolder("INBOX");
-            emailFolder.open(Folder.READ_ONLY); // 确保文件夹已打开
+            emailFolder.open(Folder.READ_ONLY);
 
             Message[] messages = emailFolder.getMessages();
             for (Message message : messages) {
@@ -123,11 +113,9 @@ public class MailManager {
                 mail.setSentDate(message.getSentDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
                 emails.add(mail);
             }
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         } finally {
-            // 确保在操作完成后正确关闭文件夹和存储
             try {
                 if (emailFolder != null && emailFolder.isOpen()) {
                     emailFolder.close(false);

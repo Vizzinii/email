@@ -10,20 +10,20 @@ public class MailBean {
     private String from;
     private String to;
     private LocalDateTime sentDate;
-    private boolean isRead;
+    private boolean Read;
     private List<AttachmentBean> attachments;
 
     // Constructors
     public MailBean() {
     }
 
-    public MailBean(String subject, String body, String from, String to, LocalDateTime sentDate, boolean isRead, List<AttachmentBean> attachments) {
+    public MailBean(String subject, String body, String from, String to, LocalDateTime sentDate, boolean Read, List<AttachmentBean> attachments) {
         this.subject = subject;
         this.body = body;
         this.from = from;
         this.to = to;
         this.sentDate = sentDate;
-        this.isRead = isRead;
+        this.Read = Read;
         this.attachments = attachments;
     }
 
@@ -68,12 +68,12 @@ public class MailBean {
         this.sentDate = sentDate;
     }
 
-    public boolean isRead() {
-        return isRead;
+    public boolean Read() {
+        return Read;
     }
 
     public void setRead(boolean read) {
-        isRead = read;
+        Read = read;
     }
 
     public List<AttachmentBean> getAttachments() {
@@ -85,4 +85,15 @@ public class MailBean {
     }
 
     // Additional methods if needed
+
+    @Override
+    public String toString() {
+        return "MailBean{" +
+                "from='" + from + '\'' +
+                ", to='" + to + '\'' +
+                ", subject='" + subject + '\'' +
+                ", body='" + body + '\'' +
+                ", sentDate=" + sentDate +
+                '}';
+    }
 }

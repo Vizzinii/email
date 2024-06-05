@@ -50,4 +50,32 @@ public class UserController {
     public ResponseEntity<String> testEndpoint() {
         return ResponseEntity.ok("API is working");
     }
+
+    @GetMapping("/getUserIdByEmail")
+    public ResponseEntity<UserIdResponse> getUserIdByEmail(@RequestParam String email) {
+        try {
+            UserEntity user = userService.findUserByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            UserIdResponse response = new UserIdResponse(user.getUserId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    public class UserIdResponse {
+        private Long userId;
+
+        public UserIdResponse(Long userId) {
+            this.userId = userId;
+        }
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public void setUserId(Long userId) {
+            this.userId = userId;
+        }
+    }
 }

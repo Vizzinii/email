@@ -10,11 +10,14 @@ import com.example.email.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 @Service
 public class MailService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MailService.class);
 
     @Autowired
     private MailRepository mailRepository;
@@ -24,29 +27,6 @@ public class MailService {
 
     @Autowired
     private UserRepository userRepository;
-
-    public Long getUserIdByUsername(String username) {
-        Optional<UserEntity> userOpt = userRepository.findByUsername(username);
-        if (userOpt.isPresent()) {
-            return userOpt.get().getUserId();
-        } else {
-            throw new RuntimeException("User not found");
-        }
-    }
-
-    public List<MailEntity> getInboxByToId(Long toId) {
-        Optional<FolderEntity> inboxFolderOpt = folderRepository.findByUserUserIdAndName(toId, "收件箱");
-        if (inboxFolderOpt.isPresent()) {
-            return mailRepository.findByToUserUserIdAndFolderFolderId(toId, inboxFolderOpt.get().getFolderId());
-        } else {
-            throw new RuntimeException("Inbox folder not found");
-        }
-    }
-
-
-    public void saveMail(MailEntity mailEntity) {
-        mailRepository.save(mailEntity);
-    }
 
     public void sendEmail(UserEntity fromUser, UserEntity toUser, String subject, String body) {
         MailEntity mail = new MailEntity();
@@ -61,23 +41,41 @@ public class MailService {
         mailRepository.save(mail);
     }
 
-
-
-        public List<MailEntity> getInbox(UserEntity user) {
+    public List<MailEntity> getInbox(UserEntity user) {
         return mailRepository.findByToUserWithFromUser(user);
     }
 
-    public void deleteEmail(Long emailId) {
-        if (mailRepository.existsById(emailId)) {
-            mailRepository.deleteById(emailId);
+    public Long getUserIdByUsername(String username) {
+        logger.info("Fetching userId for username: {}", username);
+        Optional<UserEntity> userOpt = userRepository.findByUsername(username);
+        if (userOpt.isPresent()) {
+            return userOpt.get().getUserId();
         } else {
-            throw new RuntimeException("Email not found");
+            logger.error("User not found for username: {}", username);
+            throw new RuntimeException("User not found");
         }
     }
 
+    public List<MailEntity> getInboxByToId(Long toId) {
+        logger.info("Fetching inbox for userId: {}", toId);
+        Optional<FolderEntity> inboxFolderOpt = folderRepository.findByUserUserIdAndName(toId, "收件箱");
+        if (inboxFolderOpt.isPresent()) {
+            List<MailEntity> mails = mailRepository.findByToUserUserIdAndFolderFolderIdOrderBySentDateDesc(toId, inboxFolderOpt.get().getFolderId());
+            mails.forEach(mail -> logger.info("Mail ID: {}, Subject: {}, isRead: {}", mail.getEmailId(), mail.getSubject(), mail.isRead()));
+            return mails;
+        } else {
+            logger.error("Inbox folder not found for userId: {}", toId);
+            throw new RuntimeException("Inbox folder not found");
+        }
+    }
 
+    public void saveMail(MailEntity mailEntity) {
+        logger.info("Saving mail from {} to {}", mailEntity.getFromEmail(), mailEntity.getToEmail());
+        mailRepository.save(mailEntity);
+    }
 
     public void saveReceivedEmail(MailBean mailBean, Long userId) {
+        logger.info("Saving received email for userId: {}", userId);
         UserEntity user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found"));
         Optional<FolderEntity> inboxFolderOpt = folderRepository.findByUserUserIdAndName(userId, "收件箱");
         FolderEntity inboxFolder;
@@ -97,10 +95,24 @@ public class MailService {
         mail.setToEmail(mailBean.getTo());
         mail.setSubject(mailBean.getSubject());
         mail.setBody(mailBean.getBody());
-        mail.setSentDate(mailBean.getSentDate());
+        mail.setSentDate(LocalDateTime.now()); // Ensure sent date is set here
         mail.setRead(false);
         mail.setFolder(inboxFolder);
 
         mailRepository.save(mail);
+    }
+
+    public void deleteEmail(Long emailId) {
+        logger.info("Deleting email with emailId: {}", emailId);
+        if (mailRepository.existsById(emailId)) {
+            mailRepository.deleteById(emailId);
+        } else {
+            logger.error("Email not found with emailId: {}", emailId);
+            throw new RuntimeException("Email not found");
+        }
+    }
+
+    public Optional<MailEntity> findById(Long emailId) {
+        return mailRepository.findById(emailId);
     }
 }
