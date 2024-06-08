@@ -1,10 +1,12 @@
 package com.example.email.controller;
 
+import com.example.email.entity.AttachmentEntity;
 import com.example.email.entity.MailEntity;
 import com.example.email.entity.UserEntity;
 import com.example.email.entity.FolderEntity;
 import com.example.email.mailmanagement.beans.MailBean;
 import com.example.email.mailmanagement.util.MailManager;
+import com.example.email.repository.AttachmentRepository;
 import com.example.email.service.FolderService;
 import com.example.email.service.MailService;
 import com.example.email.service.UserService;
@@ -24,7 +26,8 @@ import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/mail")
-@CrossOrigin(origins = "http://localhost:3000") // 前端应用的 URL
+@CrossOrigin(origins = "http://localhost:3000")
+// 前端应用的 URL
 public class MailController {
 
     private static final Logger logger = LoggerFactory.getLogger(MailController.class);
@@ -33,13 +36,16 @@ public class MailController {
     private final MailService mailService;
     private final UserService userService;
     private final FolderService folderService;
+    private final AttachmentRepository attachmentRepository;
+
 
     @Autowired
-    public MailController(MailManager mailManager, MailService mailService, UserService userService, FolderService folderService) {
+    public MailController(MailManager mailManager, MailService mailService, UserService userService, FolderService folderService, AttachmentRepository attachmentRepository) {
         this.mailManager = mailManager;
         this.mailService = mailService;
         this.userService = userService;
         this.folderService= folderService;
+        this.attachmentRepository=attachmentRepository;
     }
 
     @PostMapping("/send")
@@ -61,6 +67,15 @@ public class MailController {
             mailEntity.setBody(mail.getBody());
             mailEntity.setSentDate(LocalDateTime.now());
             mailEntity.setRead(false);
+
+            // 处理附件
+            if (mail.getAttachments() != null && !mail.getAttachments().isEmpty()) {
+                // 取第一个附件
+                Long attachmentId = mail.getAttachments().get(0).getId();
+                AttachmentEntity attachment = attachmentRepository.findById(attachmentId)
+                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                mailEntity.setAttachment(attachment);
+            }
 
             // 查找收件人的收件箱文件夹并设置
             Long toUserId = toUser.getUserId();
@@ -108,6 +123,12 @@ public class MailController {
             logger.error("Error deleting email: ", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete email");
         }
+    }
+
+    @GetMapping("/sent")
+    public List<MailEntity> getSentEmails(@RequestParam Long fromId) {
+        UserEntity user = userService.findById(fromId);
+        return mailService.getSentEmails(user);
     }
 
     @GetMapping("/inbox")

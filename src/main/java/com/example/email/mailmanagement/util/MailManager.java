@@ -1,8 +1,11 @@
 package com.example.email.mailmanagement.util;
 
+import com.example.email.entity.AttachmentEntity;
 import com.example.email.entity.MailEntity;
 import com.example.email.entity.UserEntity;
+import com.example.email.mailmanagement.beans.AttachmentBean;
 import com.example.email.mailmanagement.beans.MailBean;
+import com.example.email.repository.AttachmentRepository;
 import com.example.email.repository.MailRepository;
 import com.example.email.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
@@ -12,6 +15,13 @@ import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+
+import jakarta.mail.internet.*;
+
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -52,6 +62,9 @@ public class MailManager {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private AttachmentRepository attachmentRepository;
+
     private Properties smtpProps;
     private Properties pop3Props;
 
@@ -81,10 +94,27 @@ public class MailManager {
             message.setFrom(new InternetAddress(mailBean.getFrom()));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(mailBean.getTo()));
             message.setSubject(mailBean.getSubject());
-            message.setText(mailBean.getBody());
+
+            MimeBodyPart textPart = new MimeBodyPart();
+            textPart.setText(mailBean.getBody());
+
+            Multipart multipart = new MimeMultipart();
+            multipart.addBodyPart(textPart);
+
+            if (mailBean.getAttachments() != null && !mailBean.getAttachments().isEmpty()) {
+                AttachmentBean attachmentBean = mailBean.getAttachments().get(0); // 获取第一个附件
+                AttachmentEntity attachment = attachmentRepository.findById(attachmentBean.getId())
+                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
+
+                MimeBodyPart attachmentPart = new MimeBodyPart();
+                attachmentPart.attachFile(Paths.get(attachment.getFilePath()).toFile());
+                multipart.addBodyPart(attachmentPart);
+            }
+
+            message.setContent(multipart);
 
             Transport.send(message);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error sending email", e);
         }
     }

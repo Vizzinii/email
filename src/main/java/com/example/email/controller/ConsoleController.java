@@ -1,12 +1,16 @@
 package com.example.email.controller;
 
 import com.example.email.entity.UserEntity;
+import com.example.email.mailmanagement.beans.AttachmentBean;
+import com.example.email.repository.AttachmentRepository;
 import com.example.email.service.MailService;
 import com.example.email.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Controller;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
@@ -18,6 +22,9 @@ public class ConsoleController implements CommandLineRunner {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private AttachmentRepository attachmentRepository;
 
     private Scanner scanner = new Scanner(System.in);
 
@@ -99,9 +106,10 @@ public class ConsoleController implements CommandLineRunner {
 
         Optional<UserEntity> fromUserOpt = userService.findUserByUsername(fromUsername);
         Optional<UserEntity> toUserOpt = userService.findUserByUsername(toUsername);
+        List<AttachmentBean> attachments = new ArrayList<>();
 
         if (fromUserOpt.isPresent() && toUserOpt.isPresent()) {
-            mailService.sendEmail(fromUserOpt.get(), toUserOpt.get(), subject, body);
+            mailService.sendEmail(fromUserOpt.get(), toUserOpt.get(), subject, body, attachments);
             System.out.println("Email sent successfully.");
         } else {
             System.out.println("Invalid sender or recipient username.");

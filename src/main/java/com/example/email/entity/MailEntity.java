@@ -43,6 +43,10 @@ public class MailEntity {
     @JsonBackReference(value = "folder-emails")
     private FolderEntity folder;
 
+    @ManyToOne
+    @JoinColumn(name = "attachment_id", nullable = true)
+    private AttachmentEntity attachment;
+
     // Getters and Setters
     public Long getEmailId() {
         return emailId;
@@ -127,5 +131,13 @@ public class MailEntity {
 
     public void setFolder(FolderEntity folder) {
         this.folder = folder;
+    }
+
+    public AttachmentEntity getAttachment() {
+        return attachment;
+    }
+
+    public void setAttachment(AttachmentEntity attachment) {
+        this.attachment = attachment;
     }
 }

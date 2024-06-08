@@ -2,6 +2,7 @@ package com.example.email.mailmanagement.beans;
 
 public class AttachmentBean {
 
+    private Long id;  // 新增字段
     private String fileName;
     private String filePath;
 
@@ -9,12 +10,21 @@ public class AttachmentBean {
     public AttachmentBean() {
     }
 
-    public AttachmentBean(String fileName, String filePath) {
+    public AttachmentBean(Long id, String fileName, String filePath) {
+        this.id = id;
         this.fileName = fileName;
         this.filePath = filePath;
     }
 
     // Getters and Setters
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
     public String getFileName() {
         return fileName;
     }
@@ -32,4 +42,12 @@ public class AttachmentBean {
     }
 
     // Additional methods if needed
+    @Override
+    public String toString() {
+        return "AttachmentBean{" +
+                "id=" + id +
+                ", fileName='" + fileName + '\'' +
+                ", filePath='" + filePath + '\'' +
+                '}';
+    }
 }

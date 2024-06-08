@@ -1,12 +1,15 @@
 package com.example.email.service;
 
+import com.example.email.entity.AttachmentEntity;
 import com.example.email.entity.FolderEntity;
 import com.example.email.entity.MailEntity;
 import com.example.email.entity.UserEntity;
 import com.example.email.mailmanagement.beans.MailBean;
+import com.example.email.repository.AttachmentRepository;
 import com.example.email.repository.FolderRepository;
 import com.example.email.repository.MailRepository;
 import com.example.email.repository.UserRepository;
+import com.example.email.mailmanagement.beans.AttachmentBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -28,7 +31,10 @@ public class MailService {
     @Autowired
     private UserRepository userRepository;
 
-    public void sendEmail(UserEntity fromUser, UserEntity toUser, String subject, String body) {
+    @Autowired
+    private AttachmentRepository attachmentRepository;
+
+    public void sendEmail(UserEntity fromUser, UserEntity toUser, String subject, String body, List<AttachmentBean> attachments) {
         MailEntity mail = new MailEntity();
         mail.setFromUser(fromUser);
         mail.setToUser(toUser);
@@ -38,11 +44,23 @@ public class MailService {
         mail.setBody(body);
         mail.setSentDate(LocalDateTime.now());
         mail.setRead(false);
+
+        if (attachments != null && !attachments.isEmpty()) {
+            Long attachmentId = attachments.get(0).getId(); // 获取第一个附件
+            AttachmentEntity attachment = attachmentRepository.findById(attachmentId)
+                    .orElseThrow(() -> new RuntimeException("Attachment not found"));
+            mail.setAttachment(attachment);
+        }
+
         mailRepository.save(mail);
     }
 
     public List<MailEntity> getInbox(UserEntity user) {
         return mailRepository.findByToUserWithFromUser(user);
+    }
+
+    public List<MailEntity> getSentEmails(UserEntity user) {
+        return mailRepository.findByFromUser(user);
     }
 
     public Long getUserIdByUsername(String username) {

@@ -6,8 +6,12 @@ import com.example.email.repository.UserRepository;
 import com.example.email.repository.FolderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
@@ -17,6 +21,13 @@ import java.util.Optional;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    @Value("${attachment.base-path}")
+    private String attachmentBasePath;
+
+    public String getAttachmentBasePath() {
+        return attachmentBasePath;
+    }
 
     // 使用构造器注入
     @Autowired
@@ -42,13 +53,26 @@ public class UserService {
         inboxFolder.setName("收件箱");
         folderRepository.save(inboxFolder);
 
-        return user;
+        String attachmentFolderPath = Paths.get(attachmentBasePath, user.getEmail()).toString();
+        File attachmentFolder = new File(attachmentFolderPath);
+        if (!attachmentFolder.exists()) {
+            attachmentFolder.mkdirs();
+        }
+        user.setAttachmentFolderPath(attachmentFolderPath);
+
+        return userRepository.save(user);
     }
 
 
     public UserEntity getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // 根据用户 ID 查找用户
+    public UserEntity findById(Long userId) {
+        Optional<UserEntity> userOpt = userRepository.findById(userId);
+        return userOpt.orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
     }
 
     public Optional<UserEntity> findUserByUsername(String username) {

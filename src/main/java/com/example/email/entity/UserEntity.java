@@ -42,6 +42,10 @@ public class UserEntity {
     @JsonManagedReference(value = "user-folders")
     private List<FolderEntity> folders;
 
+    @Column(name = "attachment_folder_path")
+    private String attachmentFolderPath;
+
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -124,5 +128,13 @@ public class UserEntity {
 
     public void setFolders(List<FolderEntity> folders) {
         this.folders = folders;
+    }
+
+    public String getAttachmentFolderPath() {
+        return attachmentFolderPath;
+    }
+
+    public void setAttachmentFolderPath(String attachmentFolderPath) {
+        this.attachmentFolderPath = attachmentFolderPath;
     }
 }

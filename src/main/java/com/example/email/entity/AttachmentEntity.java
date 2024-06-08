@@ -1,8 +1,10 @@
 package com.example.email.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
+
 
 @Entity
 @Table(name = "attachments")
@@ -12,19 +14,20 @@ public class AttachmentEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long attachmentId;
 
-    @Column(nullable = false)
-    private Long emailId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserEntity user;
 
-    @Column(nullable = false)
+    @Column(name = "file_name", nullable = false)
     private String fileName;
 
-    @Column(nullable = false)
+    @Column(name = "file_path", nullable = false)
     private String filePath;
 
+    @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt;
 
     // Getters and Setters
-
     public Long getAttachmentId() {
         return attachmentId;
     }
@@ -33,12 +36,14 @@ public class AttachmentEntity {
         this.attachmentId = attachmentId;
     }
 
-    public Long getEmailId() {
-        return emailId;
+    @JsonBackReference
+    public UserEntity getUser() {
+        return user;
     }
 
-    public void setEmailId(Long emailId) {
-        this.emailId = emailId;
+    @JsonBackReference
+    public void setUser(UserEntity user) {
+        this.user = user;
     }
 
     public String getFileName() {
