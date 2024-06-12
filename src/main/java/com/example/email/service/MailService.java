@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 @Service
 public class MailService {
 
@@ -34,6 +35,9 @@ public class MailService {
     @Autowired
     private AttachmentRepository attachmentRepository;
 
+    @Autowired
+    private AttachmentService attachmentService;
+
     public void sendEmail(UserEntity fromUser, UserEntity toUser, String subject, String body, List<AttachmentBean> attachments) {
         MailEntity mail = new MailEntity();
         mail.setFromUser(fromUser);
@@ -46,10 +50,24 @@ public class MailService {
         mail.setRead(false);
 
         if (attachments != null && !attachments.isEmpty()) {
-            Long attachmentId = attachments.get(0).getId(); // 获取第一个附件
-            AttachmentEntity attachment = attachmentRepository.findById(attachmentId)
-                    .orElseThrow(() -> new RuntimeException("Attachment not found"));
-            mail.setAttachment(attachment);
+            if (attachments.size() > 0) {
+                Long attachmentId1 = attachments.get(0).getId();
+                AttachmentEntity attachment1 = attachmentRepository.findById(attachmentId1)
+                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                mail.setAttachment1(attachment1);
+            }
+            if (attachments.size() > 1) {
+                Long attachmentId2 = attachments.get(1).getId();
+                AttachmentEntity attachment2 = attachmentRepository.findById(attachmentId2)
+                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                mail.setAttachment2(attachment2);
+            }
+            if (attachments.size() > 2) {
+                Long attachmentId3 = attachments.get(2).getId();
+                AttachmentEntity attachment3 = attachmentRepository.findById(attachmentId3)
+                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                mail.setAttachment3(attachment3);
+            }
         }
 
         mailRepository.save(mail);
@@ -107,13 +125,13 @@ public class MailService {
         }
 
         MailEntity mail = new MailEntity();
-        mail.setFromUser(user); // assuming user is the sender
-        mail.setToUser(user); // assuming user is the receiver
+        mail.setFromUser(user);
+        mail.setToUser(user);
         mail.setFromEmail(mailBean.getFrom());
         mail.setToEmail(mailBean.getTo());
         mail.setSubject(mailBean.getSubject());
         mail.setBody(mailBean.getBody());
-        mail.setSentDate(LocalDateTime.now()); // Ensure sent date is set here
+        mail.setSentDate(LocalDateTime.now());
         mail.setRead(false);
         mail.setFolder(inboxFolder);
 

@@ -16,7 +16,9 @@ public interface MailRepository extends JpaRepository<MailEntity, Long> {
     List<MailEntity> findByToUserWithFromUser(@Param("toUser") UserEntity toUser);
     List<MailEntity> findByFromUser(UserEntity fromUser);
     List<MailEntity> findByToUserUserIdAndFolderFolderIdOrderBySentDateDesc(Long toUserId, Long folderId);
-    List<MailEntity> findByAttachment(AttachmentEntity attachment);// 添加按发送时间倒序排序的方法
+    List<MailEntity> findByAttachment1(AttachmentEntity attachment);
+    List<MailEntity> findByAttachment2(AttachmentEntity attachment);
+    List<MailEntity> findByAttachment3(AttachmentEntity attachment);// 添加按发送时间倒序排序的方法
 }
 
 

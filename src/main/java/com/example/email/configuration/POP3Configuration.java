@@ -13,6 +13,7 @@ public class POP3Configuration extends AbstractMailServerConfiguration {
         System.out.println("Host: " + host);
         System.out.println("Port: " + port);
         System.out.println("Username: " + username);
+
         // Don't print password for security reasons
     }
 }

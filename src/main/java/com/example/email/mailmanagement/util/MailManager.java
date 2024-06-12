@@ -75,11 +75,15 @@ public class MailManager {
         smtpProps.put("mail.smtp.starttls.enable", "false");
         smtpProps.put("mail.smtp.host", smtpHost);
         smtpProps.put("mail.smtp.port", smtpPort);
+        smtpProps.put("mail.smtp.connection timeout", "10000"); // 连接超时：10秒
+        smtpProps.put("mail.smtp.timeout", "30000"); // 读超时：30秒
 
         pop3Props = new Properties();
         pop3Props.put("mail.pop3.host", pop3Host);
         pop3Props.put("mail.pop3.port", pop3Port);
         pop3Props.put("mail.pop3.starttls.enable", "false");
+        pop3Props.put("mail.pop3.connection timeout", "10000"); // 连接超时：10秒
+        pop3Props.put("mail.pop3.timeout", "30000"); // 读超时：30秒
     }
 
     public void sendEmail(MailBean mailBean) {
@@ -101,14 +105,16 @@ public class MailManager {
             Multipart multipart = new MimeMultipart();
             multipart.addBodyPart(textPart);
 
+            // 处理附件
             if (mailBean.getAttachments() != null && !mailBean.getAttachments().isEmpty()) {
-                AttachmentBean attachmentBean = mailBean.getAttachments().get(0); // 获取第一个附件
-                AttachmentEntity attachment = attachmentRepository.findById(attachmentBean.getId())
-                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                for (AttachmentBean attachmentBean : mailBean.getAttachments()) {
+                    AttachmentEntity attachment = attachmentRepository.findById(attachmentBean.getId())
+                            .orElseThrow(() -> new RuntimeException("Attachment not found"));
 
-                MimeBodyPart attachmentPart = new MimeBodyPart();
-                attachmentPart.attachFile(Paths.get(attachment.getFilePath()).toFile());
-                multipart.addBodyPart(attachmentPart);
+                    MimeBodyPart attachmentPart = new MimeBodyPart();
+                    attachmentPart.attachFile(Paths.get(attachment.getFilePath()).toFile());
+                    multipart.addBodyPart(attachmentPart);
+                }
             }
 
             message.setContent(multipart);
@@ -118,7 +124,6 @@ public class MailManager {
             throw new RuntimeException("Error sending email", e);
         }
     }
-
 
     public List<MailBean> receiveEmails(String username, String password) {
         List<MailBean> emails = new ArrayList<>();

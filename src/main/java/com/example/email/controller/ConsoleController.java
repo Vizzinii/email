@@ -3,6 +3,7 @@ package com.example.email.controller;
 import com.example.email.entity.UserEntity;
 import com.example.email.mailmanagement.beans.AttachmentBean;
 import com.example.email.repository.AttachmentRepository;
+import com.example.email.service.AttachmentService;
 import com.example.email.service.MailService;
 import com.example.email.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class ConsoleController implements CommandLineRunner {
     private MailService mailService;
 
     @Autowired
+    private AttachmentService attachmentService;
+
+    @Autowired
     private AttachmentRepository attachmentRepository;
 
     private Scanner scanner = new Scanner(System.in);
@@ -40,7 +44,9 @@ public class ConsoleController implements CommandLineRunner {
             System.out.println("3. Send Email");
             System.out.println("4. View Inbox");
             System.out.println("5. Delete User");
-            System.out.println("6. Exit");
+            System.out.println("6. Delete Email");
+            System.out.println("7. Delete Attachment");
+            System.out.println("8. Exit");
             System.out.print("Choose an option: ");
             int option = scanner.nextInt();
             scanner.nextLine(); // consume newline
@@ -62,6 +68,12 @@ public class ConsoleController implements CommandLineRunner {
                     deleteUser();
                     break;
                 case 6:
+                    deleteEmail();
+                    break;
+                case 7:
+                    deleteAttachment();
+                    break;
+                case 8:
                     System.out.println("Exiting...");
                     return; // Exit the run method to trigger application shutdown
                 default:
@@ -145,6 +157,30 @@ public class ConsoleController implements CommandLineRunner {
             System.out.println("User deleted successfully.");
         } else {
             System.out.println("Invalid username.");
+        }
+    }
+
+    private void deleteEmail() {
+        System.out.print("Enter email ID to delete: ");
+        Long emailId = scanner.nextLong();
+        scanner.nextLine(); // consume newline
+        try {
+            mailService.deleteEmail(emailId);
+            System.out.println("Email deleted successfully.");
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void deleteAttachment() {
+        System.out.print("Enter attachment ID to delete: ");
+        Long attachmentId = scanner.nextLong();
+        scanner.nextLine(); // consume newline
+        try {
+            attachmentService.deleteAttachment(attachmentId);
+            System.out.println("Attachment deleted successfully.");
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
         }
     }
 }

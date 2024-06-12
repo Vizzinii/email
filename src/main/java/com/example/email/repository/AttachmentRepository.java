@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface AttachmentRepository extends JpaRepository<AttachmentEntity, Long> {
     List<AttachmentEntity> findByUserOrderByUploadedAtDesc(UserEntity user);
+    List<AttachmentEntity> findByUser(UserEntity user);
 }

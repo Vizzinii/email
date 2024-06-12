@@ -45,7 +45,15 @@ public class MailEntity {
 
     @ManyToOne
     @JoinColumn(name = "attachment_id", nullable = true)
-    private AttachmentEntity attachment;
+    private AttachmentEntity attachment1;
+
+    @ManyToOne
+    @JoinColumn(name = "attachment_id2", nullable = true)
+    private AttachmentEntity attachment2;
+
+    @ManyToOne
+    @JoinColumn(name = "attachment_id3", nullable = true)
+    private AttachmentEntity attachment3;
 
     // Getters and Setters
     public Long getEmailId() {
@@ -133,11 +141,29 @@ public class MailEntity {
         this.folder = folder;
     }
 
-    public AttachmentEntity getAttachment() {
-        return attachment;
+
+
+    public AttachmentEntity getAttachment1() {
+        return attachment1;
     }
 
-    public void setAttachment(AttachmentEntity attachment) {
-        this.attachment = attachment;
+    public void setAttachment1(AttachmentEntity attachment1) {
+        this.attachment1 = attachment1;
+    }
+
+    public AttachmentEntity getAttachment2() {
+        return attachment2;
+    }
+
+    public void setAttachment2(AttachmentEntity attachment2) {
+        this.attachment2 = attachment2;
+    }
+
+    public AttachmentEntity getAttachment3() {
+        return attachment3;
+    }
+
+    public void setAttachment3(AttachmentEntity attachment3) {
+        this.attachment3 = attachment3;
     }
 }

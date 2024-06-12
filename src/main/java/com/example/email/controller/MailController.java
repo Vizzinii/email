@@ -70,11 +70,24 @@ public class MailController {
 
             // 处理附件
             if (mail.getAttachments() != null && !mail.getAttachments().isEmpty()) {
-                // 取第一个附件
-                Long attachmentId = mail.getAttachments().get(0).getId();
-                AttachmentEntity attachment = attachmentRepository.findById(attachmentId)
-                        .orElseThrow(() -> new RuntimeException("Attachment not found"));
-                mailEntity.setAttachment(attachment);
+                if (mail.getAttachments().size() > 0) {
+                    Long attachmentId1 = mail.getAttachments().get(0).getId();
+                    AttachmentEntity attachment1 = attachmentRepository.findById(attachmentId1)
+                            .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                    mailEntity.setAttachment1(attachment1);
+                }
+                if (mail.getAttachments().size() > 1) {
+                    Long attachmentId2 = mail.getAttachments().get(1).getId();
+                    AttachmentEntity attachment2 = attachmentRepository.findById(attachmentId2)
+                            .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                    mailEntity.setAttachment2(attachment2);
+                }
+                if (mail.getAttachments().size() > 2) {
+                    Long attachmentId3 = mail.getAttachments().get(2).getId();
+                    AttachmentEntity attachment3 = attachmentRepository.findById(attachmentId3)
+                            .orElseThrow(() -> new RuntimeException("Attachment not found"));
+                    mailEntity.setAttachment3(attachment3);
+                }
             }
 
             // 查找收件人的收件箱文件夹并设置
@@ -89,7 +102,7 @@ public class MailController {
 
             mailService.saveMail(mailEntity); // 保存邮件记录
 
-            mailManager.sendEmail(mail); // 调用发送邮件的方法
+            //mailManager.sendEmail(mail); // 调用发送邮件的方法，只能发送简单邮件
 
             logger.info("Email sent successfully from {} to {}", mail.getFrom(), mail.getTo());
             return ResponseEntity.ok("Email sent successfully");

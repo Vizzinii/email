@@ -6,6 +6,7 @@ import com.example.email.entity.UserEntity;
 import com.example.email.repository.AttachmentRepository;
 import com.example.email.repository.UserRepository;
 import com.example.email.service.UserService;
+import com.example.email.service.AttachmentService;
 import com.example.email.repository.MailRepository;
 
 import org.junit.platform.commons.logging.Logger;
@@ -43,6 +44,9 @@ public class AttachmentController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AttachmentService attachmentService;
 
     @Autowired
     private AttachmentRepository attachmentRepository;
@@ -103,29 +107,12 @@ public class AttachmentController {
 
     @DeleteMapping("/{attachmentId}")
     public ResponseEntity<?> deleteAttachment(@PathVariable Long attachmentId) {
-        Optional<AttachmentEntity> attachmentOpt = attachmentRepository.findById(attachmentId);
-        if (!attachmentOpt.isPresent()) {
-            return ResponseEntity.badRequest().body("Attachment not found");
+        try {
+            attachmentService.deleteAttachment(attachmentId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
-
-        AttachmentEntity attachment = attachmentOpt.get();
-
-        // 更新所有引用该附件的邮件，将其 attachment 字段设置为 NULL
-        List<MailEntity> emailsWithAttachment = mailRepository.findByAttachment(attachment);
-        for (MailEntity email : emailsWithAttachment) {
-            email.setAttachment(null);
-            mailRepository.save(email);
-        }
-
-        // 删除附件文件
-        File file = new File(attachment.getFilePath());
-        if (file.exists()) {
-            file.delete();
-        }
-
-        // 删除附件实体
-        attachmentRepository.delete(attachment);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/download/{attachmentId}")

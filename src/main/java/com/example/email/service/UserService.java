@@ -1,7 +1,11 @@
 package com.example.email.service;
 
+import com.example.email.entity.AttachmentEntity;
 import com.example.email.entity.UserEntity;
 import com.example.email.entity.FolderEntity;
+import com.example.email.entity.MailEntity;
+import com.example.email.repository.MailRepository;
+import com.example.email.repository.AttachmentRepository;
 import com.example.email.repository.UserRepository;
 import com.example.email.repository.FolderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +19,15 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    private final AttachmentRepository attachmentRepository;
+    private final MailRepository mailRepository;
 
     @Value("${attachment.base-path}")
     private String attachmentBasePath;
@@ -31,14 +38,26 @@ public class UserService {
 
     // 使用构造器注入
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, AttachmentRepository attachmentRepository, MailRepository mailRepository) {
+        this.attachmentRepository = attachmentRepository;
         this.userRepository = userRepository;
+        this.mailRepository = mailRepository;
     }
 
     @Autowired
     private FolderRepository folderRepository;
 
     public UserEntity registerUser(String username, String email, String password) {
+
+        if (userRepository.findByUsername(username).isPresent()) {
+            throw new RuntimeException("Username already exists");
+        }
+
+        // 检查邮箱是否已存在
+        if (userRepository.findByEmail(email).isPresent()) {
+            throw new RuntimeException("Email already exists");
+        }
+
         UserEntity user = new UserEntity();
         user.setUsername(username);
         user.setEmail(email);
@@ -52,6 +71,7 @@ public class UserService {
         inboxFolder.setUser(user);
         inboxFolder.setName("收件箱");
         folderRepository.save(inboxFolder);
+
 
         String attachmentFolderPath = Paths.get(attachmentBasePath, user.getEmail()).toString();
         File attachmentFolder = new File(attachmentFolderPath);
@@ -84,11 +104,64 @@ public class UserService {
     }
 
     public void deleteUser(Long userId) {
-        Optional<UserEntity> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
+        Optional<UserEntity> userOpt = userRepository.findById(userId);
+        if (userOpt.isEmpty()) {
             throw new RuntimeException("User not found.");
         }
+
+        UserEntity user = userOpt.get();
+
+        // 删除用户的所有附件记录
+        List<AttachmentEntity> attachments = attachmentRepository.findByUser(user);
+        for (AttachmentEntity attachment : attachments) {
+            // 更新所有引用该附件的邮件，将其 attachmentId 字段设置为 NULL
+            List<MailEntity> emailsWithAttachment1 = mailRepository.findByAttachment1(attachment);
+            for (MailEntity email : emailsWithAttachment1) {
+                email.setAttachment1(null);
+                mailRepository.save(email);
+            }
+
+            List<MailEntity> emailsWithAttachment2 = mailRepository.findByAttachment2(attachment);
+            for (MailEntity email : emailsWithAttachment2) {
+                email.setAttachment2(null);
+                mailRepository.save(email);
+            }
+
+            List<MailEntity> emailsWithAttachment3 = mailRepository.findByAttachment3(attachment);
+            for (MailEntity email : emailsWithAttachment3) {
+                email.setAttachment3(null);
+                mailRepository.save(email);
+            }
+
+            // 删除附件文件
+            File file = new File(attachment.getFilePath());
+            if (file.exists()) {
+                file.delete();
+            }
+            attachmentRepository.delete(attachment);
+        }
+
+        // 删除用户附件文件夹
+        String attachmentFolderPath = user.getAttachmentFolderPath();
+        if (attachmentFolderPath != null && !attachmentFolderPath.isEmpty()) {
+            File attachmentFolder = new File(attachmentFolderPath);
+            if (attachmentFolder.exists()) {
+                deleteDirectoryRecursively(attachmentFolder);
+            }
+        }
+
+        // 删除用户
         userRepository.deleteById(userId);
+    }
+
+    private void deleteDirectoryRecursively(File directory) {
+        File[] allContents = directory.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectoryRecursively(file);
+            }
+        }
+        directory.delete();
     }
 
     public String hashPassword(String password) {
