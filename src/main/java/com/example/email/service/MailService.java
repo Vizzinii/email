@@ -77,6 +77,16 @@ public class MailService {
         return mailRepository.findByToUserWithFromUser(user);
     }
 
+    public List<MailEntity> searchSentEmails(Long userId, String keyword) {
+        if (keyword == null || keyword.isEmpty()) {
+            UserEntity user = new UserEntity();
+            user.setUserId(userId);
+            return mailRepository.findByFromUser(user);
+        } else {
+            return mailRepository.findByFromUserIdAndKeyword(userId, keyword);
+        }
+    }
+
     public List<MailEntity> getSentEmails(UserEntity user) {
         return mailRepository.findByFromUser(user);
     }
@@ -150,5 +160,13 @@ public class MailService {
 
     public Optional<MailEntity> findById(Long emailId) {
         return mailRepository.findById(emailId);
+    }
+
+    public List<MailEntity> searchEmails(Long userId, String keyword) {
+        if (keyword == null || keyword.isEmpty()) {
+            return mailRepository.findAllByToUserUserId(userId);
+        } else {
+            return mailRepository.findByToUserUserIdAndKeyword(userId, keyword);
+        }
     }
 }

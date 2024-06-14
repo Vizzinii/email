@@ -6,6 +6,7 @@ import com.example.email.repository.AttachmentRepository;
 import com.example.email.service.AttachmentService;
 import com.example.email.service.MailService;
 import com.example.email.service.UserService;
+import com.example.email.service.DraftService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Controller;
@@ -28,6 +29,9 @@ public class ConsoleController implements CommandLineRunner {
     private AttachmentService attachmentService;
 
     @Autowired
+    private DraftService draftService;
+
+    @Autowired
     private AttachmentRepository attachmentRepository;
 
     private Scanner scanner = new Scanner(System.in);
@@ -46,7 +50,8 @@ public class ConsoleController implements CommandLineRunner {
             System.out.println("5. Delete User");
             System.out.println("6. Delete Email");
             System.out.println("7. Delete Attachment");
-            System.out.println("8. Exit");
+            System.out.println("8. Delete Draft");
+            System.out.println("0. Exit");
             System.out.print("Choose an option: ");
             int option = scanner.nextInt();
             scanner.nextLine(); // consume newline
@@ -74,6 +79,9 @@ public class ConsoleController implements CommandLineRunner {
                     deleteAttachment();
                     break;
                 case 8:
+                    deleteDraft();
+                    break;
+                case 0:
                     System.out.println("Exiting...");
                     return; // Exit the run method to trigger application shutdown
                 default:
@@ -179,6 +187,18 @@ public class ConsoleController implements CommandLineRunner {
         try {
             attachmentService.deleteAttachment(attachmentId);
             System.out.println("Attachment deleted successfully.");
+        } catch (RuntimeException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void deleteDraft() {
+        System.out.print("Enter draft ID to delete: ");
+        Long draftId = scanner.nextLong();
+        scanner.nextLine(); // consume newline
+        try {
+            draftService.deleteDraft(draftId);
+            System.out.println("Draft deleted successfully.");
         } catch (RuntimeException e) {
             System.out.println(e.getMessage());
         }

@@ -2,6 +2,7 @@ package com.example.email.service;
 
 import com.example.email.entity.AttachmentEntity;
 import com.example.email.entity.MailEntity;
+import com.example.email.entity.UserEntity;
 import com.example.email.repository.AttachmentRepository;
 import com.example.email.repository.MailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,16 @@ public class AttachmentService {
 
     @Autowired
     private MailRepository mailRepository;
+
+    public List<AttachmentEntity> searchAttachments(Long userId, String keyword) {
+        if (keyword == null || keyword.isEmpty()) {
+            UserEntity user = new UserEntity();
+            user.setUserId(userId);
+            return attachmentRepository.findByUserOrderByUploadedAtDesc(user);
+        } else {
+            return attachmentRepository.findByUserIdAndKeyword(userId, keyword);
+        }
+    }
 
     public void deleteAttachment(Long attachmentId) {
         Optional<AttachmentEntity> attachmentOpt = attachmentRepository.findById(attachmentId);

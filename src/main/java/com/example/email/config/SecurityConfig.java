@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/attachments/upload").permitAll()
                         .requestMatchers("/api/attachments/download/**").permitAll() // 允许对 /api/attachments/download/** 的访问
                         .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()  // 允许对 /api/users/login 的访问
+                        .requestMatchers(HttpMethod.GET, "/api/mail/unread-count").permitAll()
                         .requestMatchers("/api/**").permitAll()  // 允许所有 /api/ 端点的访问
                         .anyRequest().authenticated()
                 )

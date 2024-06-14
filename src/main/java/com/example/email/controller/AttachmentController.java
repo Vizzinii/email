@@ -94,15 +94,13 @@ public class AttachmentController {
 
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<AttachmentEntity>> getUserAttachments(@PathVariable Long userId) {
-        Optional<UserEntity> userOpt = userRepository.findById(userId);
-        if (!userOpt.isPresent()) {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<List<AttachmentEntity>> getUserAttachments(@PathVariable Long userId, @RequestParam(required = false) String keyword) {
+        try {
+            List<AttachmentEntity> attachments = attachmentService.searchAttachments(userId, keyword);
+            return ResponseEntity.ok(attachments);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(null);
         }
-
-        UserEntity user = userOpt.get();
-        List<AttachmentEntity> attachments = attachmentRepository.findByUserOrderByUploadedAtDesc(user);
-        return ResponseEntity.ok(attachments);
     }
 
     @DeleteMapping("/{attachmentId}")

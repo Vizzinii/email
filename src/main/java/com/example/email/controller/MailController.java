@@ -7,9 +7,11 @@ import com.example.email.entity.FolderEntity;
 import com.example.email.mailmanagement.beans.MailBean;
 import com.example.email.mailmanagement.util.MailManager;
 import com.example.email.repository.AttachmentRepository;
+import com.example.email.repository.MailRepository;
 import com.example.email.service.FolderService;
 import com.example.email.service.MailService;
 import com.example.email.service.UserService;
+import com.example.email.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,15 +39,19 @@ public class MailController {
     private final UserService userService;
     private final FolderService folderService;
     private final AttachmentRepository attachmentRepository;
+    private final MailRepository mailRepository;
+    private final UserRepository userRepository;
 
 
     @Autowired
-    public MailController(MailManager mailManager, MailService mailService, UserService userService, FolderService folderService, AttachmentRepository attachmentRepository) {
+    public MailController(MailManager mailManager, MailService mailService, UserService userService, FolderService folderService, AttachmentRepository attachmentRepository, MailRepository mailRepository, UserRepository userRepository) {
         this.mailManager = mailManager;
         this.mailService = mailService;
         this.userService = userService;
         this.folderService= folderService;
         this.attachmentRepository=attachmentRepository;
+        this.mailRepository=mailRepository;
+        this.userRepository=userRepository;
     }
 
     @PostMapping("/send")
@@ -138,17 +144,35 @@ public class MailController {
         }
     }
 
+    @GetMapping("/unread-count")
+    public ResponseEntity<Long> getUnreadMailCount(@RequestParam Long userId) {
+        Optional<UserEntity> userOpt = userRepository.findById(userId);
+        if (!userOpt.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        UserEntity user = userOpt.get();
+        long unreadCount = mailRepository.countUnreadMailsByUser(user);
+        return ResponseEntity.ok(unreadCount);
+    }
+
     @GetMapping("/sent")
-    public List<MailEntity> getSentEmails(@RequestParam Long fromId) {
-        UserEntity user = userService.findById(fromId);
-        return mailService.getSentEmails(user);
+    public ResponseEntity<List<MailEntity>> getSentEmails(@RequestParam Long fromId, @RequestParam(required = false) String keyword) {
+        try {
+            logger.info("Received get sent emails request for userId: {}", fromId);
+            List<MailEntity> sentEmails = mailService.searchSentEmails(fromId, keyword);
+            logger.info("Sent emails retrieved successfully for userId: {}", fromId);
+            return ResponseEntity.ok(sentEmails);
+        } catch (Exception e) {
+            logger.error("Error retrieving sent emails for userId: {}", fromId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/inbox")
-    public ResponseEntity<List<MailEntity>> getInbox(@RequestParam Long toId) {
+    public ResponseEntity<List<MailEntity>> getInbox(@RequestParam Long toId, @RequestParam(required = false) String keyword) {
         try {
             logger.info("Received get inbox request for userId: {}", toId);
-            List<MailEntity> inbox = mailService.getInboxByToId(toId);
+            List<MailEntity> inbox = mailService.searchEmails(toId, keyword);
             logger.info("Inbox retrieved successfully for userId: {}", toId);
             return ResponseEntity.ok(inbox);
         } catch (Exception e) {
